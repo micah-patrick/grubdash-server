@@ -17,7 +17,8 @@
     "start:solution": "npm run -it docker:build && npm run docker:run",
     "test": "jest",
     "test:solution": "npm run docker:build && npm run docker:test",
-    "test:watch": "jest --watch"
+    "test:watch": "jest --watch",
+    "dev": "nodemon src/server.js"
   },
   "keywords": [],
   "author": "",
@@ -29,6 +30,7 @@
   },
   "devDependencies": {
     "jest": "^26.4.2",
+    "nodemon": "^2.0.7",
     "supertest": "^5.0.0"
   }
 }
