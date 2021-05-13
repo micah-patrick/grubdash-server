@@ -30,7 +30,7 @@ function read(req, res) {
 }
 
 function bodyHasDeliverToProperty(req, res, next) {
-    const { data: {deliverTo} ={} } = req.body;
+    const { data: {deliverTo} = {} } = req.body;
     if (deliverTo){
         res.locals.deliverTo = deliverTo;
         return next();
@@ -55,7 +55,7 @@ function bodyHasMobileNumberProperty(req, res, next) {
 
 function bodyHasDishesProperty(req, res, next) {
     const { data: {dishes} = [] } = req.body;
-    if (dishes && dishes[0] && Array.isArray(dishes)){
+    if (dishes){
         res.locals.dishes = dishes;
         return next();
     }
@@ -64,6 +64,17 @@ function bodyHasDishesProperty(req, res, next) {
         message: "Order must include a dish",
     });  
 }
+function dishesAreValid(req, res, next) {
+    const {dishes} = res.locals;
+    if (dishes[0] && Array.isArray(dishes)){
+        return next();
+    }
+    next({
+        status: 400,
+        message: "Order must include at least one dish",
+    });  
+}
+
 function bodyHasStatusProperty(req, res, next) {
     const { data: {status} = [] } = req.body;
     if (status){
@@ -89,8 +100,8 @@ function statusIsValid(req, res, next){
 }
 
 function statusIsNotDelivered(req, res, next){
-    const {status} = res.locals;
-    if (res.locals.status === "delivered"){
+    const {status} = res.locals.order;
+    if (status === "delivered"){
         return next({
             status: 400,
             message: "A delivered order cannot be changed",
@@ -144,7 +155,7 @@ function create(req, res, next) {
         id: nextId(),
         deliverTo,
         mobileNumber,
-        dishes,
+        dishes: [...dishes],
         status: 'pending',
     };
     orders.push(newOrder);
@@ -155,7 +166,7 @@ function update(req, res, next){
     order = res.locals.order;
     order.deliverTo = res.locals.deliverTo;
     order.mobileNumber = res.locals.mobileNumber;
-    order.dishes = res.locals.dishes;
+    order.dishes = [...res.locals.dishes];
     order.status = res.locals.status;
     res.json({ data: order });
 }
@@ -181,8 +192,8 @@ function destroy(req, res, next) {
 module.exports = {
     list,
     read: [orderExists, read],
-    create: [bodyHasDeliverToProperty, bodyHasMobileNumberProperty, bodyHasDishesProperty, dishesHaveQuantity, dishesQuantityIsPos, create],
-    update: [orderExists, orderIdMatches, bodyHasDeliverToProperty, bodyHasMobileNumberProperty, bodyHasDishesProperty, bodyHasStatusProperty, statusIsValid, dishesHaveQuantity, dishesQuantityIsPos, statusIsNotDelivered, update ],
+    create: [bodyHasDeliverToProperty, bodyHasMobileNumberProperty, bodyHasDishesProperty, dishesAreValid, dishesHaveQuantity, dishesQuantityIsPos, create],
+    update: [orderExists, orderIdMatches, bodyHasDeliverToProperty, bodyHasMobileNumberProperty, bodyHasDishesProperty, dishesAreValid, bodyHasStatusProperty, statusIsValid, dishesHaveQuantity, dishesQuantityIsPos, statusIsNotDelivered, update ],
     delete: [orderExists, orderIsPending, destroy],
 }
 

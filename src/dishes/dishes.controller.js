@@ -99,7 +99,7 @@ function dishExists(req, res, next) {
     }
     next({
         status: 404,
-        message: `Dish id not found: ${dishId}`,
+        message: `Dish does not exist: ${dishId}`,
     });
 }
 
